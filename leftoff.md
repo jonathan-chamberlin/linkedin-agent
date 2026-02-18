@@ -1,0 +1,2 @@
+Try running 
+linkedin "how i competed in a hackathon, and worked for 12 hours straight, built a application called brainrot blocker. You as the agent should read the readme in repos for git > screen-time-blocker > readme.md to get more context. Structure should be the problem it solves, what the product does, then the technical desgin descisions made." <C:\Repositories for Git\screen-time-blocker\screentime-blocker\README.md>
