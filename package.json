@@ -2,6 +2,10 @@
   "name": "linkedin-agent",
   "version": "1.0.0",
   "type": "module",
+  "bin": {
+    "linkedin": "./bin/linkedin.js",
+    "lilogin": "./bin/lilogin.js"
+  },
   "scripts": {
     "login": "tsx src/index.ts login",
     "post": "tsx src/index.ts post"

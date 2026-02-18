@@ -10,5 +10,5 @@ export const SELECTORS = {
   submitButton: 'button:has-text("Post")',
 };
 
-export const MODEL = 'anthropic/claude-sonnet-4-5';
+export const MODEL = 'anthropic/claude-haiku-4-5';
 export const MAX_POST_CHARS = 3000;

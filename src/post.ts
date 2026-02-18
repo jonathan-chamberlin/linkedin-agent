@@ -15,9 +15,7 @@ function prompt(question: string): Promise<string> {
 }
 
 async function askApproval(draft: string): Promise<{ action: 'post' | 'regenerate' | 'cancel'; feedback?: string }> {
-  console.log('\n--- DRAFT ---\n');
-  console.log(draft);
-  console.log('\n--- END DRAFT ---\n');
+  console.log('\n---');
   console.log(`(${draft.length}/${MAX_POST_CHARS} chars)`);
 
   const answer = await prompt('[P]ost / [R]egenerate / [C]ancel: ');
