@@ -16,6 +16,33 @@ const toneGuidelines = fs.readFileSync(join(root, 'tone.md'), 'utf-8');
 
 const SYSTEM_PROMPT = `${linkedinStructure}\n\n${toneGuidelines}`;
 
+export interface Question {
+  question: string;
+  options: string[];
+}
+
+export async function generateQuestions(context: string): Promise<Question[]> {
+  const response = await client.chat.completions.create({
+    model: MODEL,
+    max_tokens: 512,
+    messages: [
+      {
+        role: 'system',
+        content: `You generate clarifying questions before writing a LinkedIn post. Return a JSON array of exactly 3 objects, each with "question" (string) and "options" (array of exactly 3 strings). Questions should help clarify tone, focus/emphasis, and target audience. Return ONLY valid JSON, no markdown fences or extra text.`,
+      },
+      {
+        role: 'user',
+        content: `I want to write a LinkedIn post. Here's my context:\n\n${context}`,
+      },
+    ],
+  });
+
+  let raw = response.choices[0]?.message?.content?.trim();
+  if (!raw) throw new Error('No response from model for questions');
+  raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  return JSON.parse(raw);
+}
+
 export async function generatePost(
   context: string,
   previousDraft?: string,

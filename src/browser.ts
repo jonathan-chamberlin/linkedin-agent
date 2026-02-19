@@ -3,7 +3,7 @@ import { SESSION_FILE } from './config.js';
 import fs from 'fs';
 
 export async function getContext(headless: boolean = true): Promise<BrowserContext> {
-  const browser = await chromium.launch({ headless });
+  const browser = await chromium.launch({ headless, channel: 'chrome' });
 
   const storageState = fs.existsSync(SESSION_FILE) ? SESSION_FILE : undefined;
 

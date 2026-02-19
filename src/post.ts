@@ -1,6 +1,6 @@
 import readline from 'readline';
 import fs from 'fs';
-import { generatePost } from './claude.js';
+import { generatePost, generateQuestions, Question } from './claude.js';
 import { getContext } from './browser.js';
 import { LINKEDIN_HOME, SELECTORS, SESSION_FILE, MAX_POST_CHARS } from './config.js';
 
@@ -12,6 +12,29 @@ function prompt(question: string): Promise<string> {
       resolve(answer.trim());
     });
   });
+}
+
+async function askQuestions(questions: Question[]): Promise<string[]> {
+  const answers: string[] = [];
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    console.log(`\nQ${i + 1}: ${q.question}`);
+    q.options.forEach((opt, j) => console.log(`  ${j + 1}) ${opt}`));
+    console.log(`  ${q.options.length + 1}) Other (type your own)`);
+
+    const answer = await prompt('> ');
+    const num = parseInt(answer);
+
+    if (num >= 1 && num <= q.options.length) {
+      answers.push(q.options[num - 1]);
+    } else if (num === q.options.length + 1 || isNaN(num)) {
+      const custom = isNaN(num) && answer ? answer : await prompt('Your answer: ');
+      answers.push(custom);
+    } else {
+      answers.push(q.options[0]);
+    }
+  }
+  return answers;
 }
 
 async function askApproval(draft: string): Promise<{ action: 'post' | 'regenerate' | 'cancel'; feedback?: string }> {
@@ -57,8 +80,15 @@ export async function runPost(context: string): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`Generating post about: "${context}"...`);
-  let draft = await generatePost(context);
+  console.log('Analyzing your context...');
+  const questions = await generateQuestions(context);
+  const answers = await askQuestions(questions);
+
+  const enrichedContext = context + '\n\nUser preferences:\n' +
+    answers.map((a, i) => `- ${questions[i].question}: ${a}`).join('\n');
+
+  console.log('\nGenerating post...');
+  let draft = await generatePost(enrichedContext);
 
   while (true) {
     const { action, feedback } = await askApproval(draft);
