@@ -43,6 +43,61 @@ export async function generateQuestions(context: string): Promise<Question[]> {
   return JSON.parse(raw);
 }
 
+export async function reviewDraft(draft: string): Promise<string> {
+  console.log('\n--- Review ---');
+
+  const stream = await client.chat.completions.create({
+    model: MODEL,
+    max_tokens: 2048,
+    stream: true,
+    messages: [
+      {
+        role: 'system',
+        content: `You are a strict editor. You review LinkedIn post drafts against tone and structure guidelines.
+
+Your job:
+1. First, critique the draft. Check every rule in the guidelines below. Call out SPECIFIC violations with the exact offending text quoted. Be thorough and harsh.
+2. Then output the revised post that fixes every violation.
+
+Format your response EXACTLY like this:
+
+CRITIQUE:
+- [violation]: "quoted text"
+- [violation]: "quoted text"
+...
+
+REVISED POST:
+[the full corrected post text]
+
+Guidelines:
+${SYSTEM_PROMPT}`,
+      },
+      {
+        role: 'user',
+        content: `Review this draft:\n\n${draft}`,
+      },
+    ],
+  });
+
+  let result = '';
+  for await (const chunk of stream) {
+    const token = chunk.choices[0]?.delta?.content;
+    if (token) {
+      process.stdout.write(token);
+      result += token;
+    }
+  }
+  process.stdout.write('\n');
+
+  if (!result) throw new Error('No response from model for review');
+
+  const revisedMatch = result.match(/REVISED POST:\s*([\s\S]+)$/i);
+  if (revisedMatch) {
+    return revisedMatch[1].trim();
+  }
+  return draft;
+}
+
 export async function generatePost(
   context: string,
   previousDraft?: string,

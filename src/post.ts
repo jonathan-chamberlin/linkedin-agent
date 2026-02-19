@@ -1,6 +1,6 @@
 import readline from 'readline';
 import fs from 'fs';
-import { generatePost, generateQuestions, Question } from './claude.js';
+import { generatePost, generateQuestions, reviewDraft, Question } from './claude.js';
 import { getContext } from './browser.js';
 import { LINKEDIN_HOME, SELECTORS, SESSION_FILE, MAX_POST_CHARS } from './config.js';
 
@@ -87,8 +87,9 @@ export async function runPost(context: string): Promise<void> {
   const enrichedContext = context + '\n\nUser preferences:\n' +
     answers.map((a, i) => `- ${questions[i].question}: ${a}`).join('\n');
 
-  console.log('\nGenerating post...');
-  let draft = await generatePost(enrichedContext);
+  console.log('\nGenerating draft...');
+  const initialDraft = await generatePost(enrichedContext);
+  let draft = await reviewDraft(initialDraft);
 
   while (true) {
     const { action, feedback } = await askApproval(draft);
