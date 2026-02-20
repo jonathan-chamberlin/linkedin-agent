@@ -1,1 +1,9 @@
-Generating post about: "how i competed in a hackathon, and worked for 12 hours straight, built a application called brainrot blocker. You as the agent should read the readme in repos for git to get more context. Structure should be the problem it solves, what the product does, then the technical desgin descisions made."...
+# linkedin-agent (Archived)
+
+This repo is archived. The LinkedIn post workflow now lives as a Claude Code slash command at:
+
+```
+~/.claude/commands/linkedin-post.md
+```
+
+Usage: `/linkedin-post {context} Read files: {file paths}`

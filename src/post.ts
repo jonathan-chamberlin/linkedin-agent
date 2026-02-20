@@ -37,18 +37,19 @@ async function askQuestions(questions: Question[]): Promise<string[]> {
   return answers;
 }
 
-async function askApproval(draft: string): Promise<{ action: 'post' | 'regenerate' | 'cancel'; feedback?: string }> {
+async function askApproval(draft: string): Promise<{ action: 'post' | 'regenerate' | 'modify' | 'cancel'; feedback?: string }> {
   console.log('\n---');
   console.log(`(${draft.length}/${MAX_POST_CHARS} chars)`);
 
-  const answer = await prompt('[P]ost / [R]egenerate / [C]ancel: ');
+  const answer = await prompt('[P]ost / [M]odify / [R]egenerate / [C]ancel: ');
   const a = answer.toLowerCase();
 
-  if (a === 'r') {
-    const feedback = await prompt('What should be different? ');
-    return { action: 'regenerate', feedback: feedback || undefined };
+  if (a === 'm') {
+    const feedback = await prompt('How should it be changed? ');
+    return { action: 'modify', feedback: feedback || undefined };
   }
 
+  if (a === 'r') return { action: 'regenerate' };
   if (a === 'p') return { action: 'post' };
   return { action: 'cancel' };
 }
@@ -99,9 +100,14 @@ export async function runPost(context: string): Promise<void> {
       await publishToLinkedIn(draft);
       console.log('Posted successfully.');
       break;
+    } else if (action === 'modify') {
+      console.log('Modifying...');
+      const modified = await generatePost(enrichedContext, draft, feedback);
+      draft = await reviewDraft(modified);
     } else if (action === 'regenerate') {
       console.log('Regenerating...');
-      draft = await generatePost(context, draft, feedback);
+      const regenerated = await generatePost(enrichedContext);
+      draft = await reviewDraft(regenerated);
     } else {
       console.log('Cancelled.');
       break;
